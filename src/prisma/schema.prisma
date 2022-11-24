@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model buddies {
+  id        String  @id
+  id_bundle String?
+  theme     String? @db.VarChar(100)
+  icon      String? @db.VarChar(100)
+  name      String? @db.VarChar(100)
+  bundle    bundle? @relation(fields: [id_bundle], references: [id], onDelete: Restrict, onUpdate: NoAction)
+}
+
+model bundle {
+  id          String    @id
+  name        String?   @db.VarChar(100)
+  description String?   @db.VarChar(100)
+  icon        String?   @db.VarChar(100)
+  buddies     buddies[]
+  cards       cards[]
+  skins       skins[]
+  spray       spray[]
+  title       title[]
+}
+
+model cards {
+  id        String  @id
+  id_bundle String?
+  theme     String? @db.VarChar(100)
+  name      String? @db.VarChar(100)
+  icon      String? @db.VarChar(100)
+  bundle    bundle? @relation(fields: [id_bundle], references: [id], onDelete: Restrict, onUpdate: NoAction)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model chroma {
+  id_skin String?
+  name    String? @db.VarChar(200)
+  icon    String? @db.VarChar(200)
+  skins   skins?  @relation(fields: [id_skin], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model level {
+  id_skin String?
+  name    String? @db.VarChar(200)
+  icon    String? @db.VarChar(200)
+  skins   skins?  @relation(fields: [id_skin], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@ignore
+}
+
+model skins {
+  id        String   @id
+  id_bundle String?
+  id_weapon String?
+  name      String?  @db.VarChar(100)
+  tier      String?  @db.VarChar(100)
+  theme     String?  @db.VarChar(100)
+  icon      String?  @db.VarChar(100)
+  price     Float?
+  bundle    bundle?  @relation(fields: [id_bundle], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  weapons   weapons? @relation(fields: [id_weapon], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  chroma    chroma[] @ignore
+  level     level[]  @ignore
+}
+
+model spray {
+  id        String  @id
+  id_bundle String?
+  name      String? @db.VarChar(100)
+  category  String? @db.VarChar(100)
+  theme     String? @db.VarChar(100)
+  icon      String? @db.VarChar(100)
+  animation String? @db.VarChar(100)
+  bundle    bundle? @relation(fields: [id_bundle], references: [id], onDelete: Restrict, onUpdate: NoAction)
+}
+
+model title {
+  id        String  @id
+  id_bundle String?
+  name      String? @db.VarChar(100)
+  txt       String?
+  bundle    bundle? @relation(fields: [id_bundle], references: [id], onDelete: Restrict, onUpdate: NoAction)
+}
+
+model weapons {
+  id          String        @id
+  name        String?       @db.VarChar(100)
+  category    String?       @db.VarChar(100)
+  icon        String?       @db.VarChar(100)
+  skins       skins[]
+  weaponsinfo weaponsinfo[] @ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model weaponsinfo {
+  id_weapon String?
+  info      String?  @db.VarChar(200)
+  weapons   weapons? @relation(fields: [id_weapon], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@ignore
+}
