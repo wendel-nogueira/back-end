@@ -12,6 +12,7 @@ import { SkinsController } from './models/skins.controller';
 import { ChromasController } from './models/chromas.controller';
 import { LevelsController } from './models/levels.controller';
 import { getInfo } from "./utils";
+import { ReportsController } from './models/reports.controller';
 
 
 const weaponsController = new WeaponsController();
@@ -24,6 +25,7 @@ const cardsController = new CardsController();
 const skinsController = new SkinsController();
 const levelsController = new LevelsController();
 const chromasController = new ChromasController();
+const reportsController = new ReportsController();
 
 const router = Router();
 
@@ -51,6 +53,7 @@ router.get("/skins", skinsController.getAll);
 router.get("/skins/:id", skinsController.getById);
 router.get("/skins/bundle/:id", skinsController.getByBundleId);
 router.get("/skins/weapon/:id", skinsController.getByWeaponId);
+router.get("/skins/bundle/:id_bundle/weapon/:id_weapon", skinsController.getByBundleIdAndWeaponId);
 router.get("/levels", levelsController.getAll);
 router.get("/levels/:id", levelsController.getById);
 router.get("/levels/skin/:id", levelsController.getBySkinId);
@@ -60,5 +63,6 @@ router.get("/chromas/skin/:id", chromasController.getBySkinId);
 router.get("/info", (req, res) => {
     return res.json(getInfo());
 });
+router.post("/reports", reportsController.handle);
 
 export { router };
