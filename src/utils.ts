@@ -44,7 +44,7 @@ const connections = {
         'bundle': ['id_bundle', 'id']
     },
     'weapons': {
-        'weaponinfo': ['id', 'id_weapon'],
+        'weaponsinfo': ['id', 'id_weapon'],
         'skins': ['id', 'id_weapon'],
     },
     'weaponsinfo': {

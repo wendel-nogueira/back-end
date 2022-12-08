@@ -6,10 +6,15 @@ export class ReportsController {
     public async handle(req: Request, res: Response) {
         const prisma = new PrismaClient();
         const { primaryTable, secondaryTables } = req.body;
-        let principalTable = primaryTable.table;
         const principalFields: object = {};
-        const principalOrder = primaryTable.order;
         const connections = getConnections();
+
+        if (!primaryTable) {
+            return res.status(400).json({ error: 'Table is required' });
+        }
+
+        let principalTable = primaryTable.table;
+        const principalOrder = primaryTable.order;
 
         if (principalTable === 'bundles' || principalTable === 'chromas' || principalTable === 'levels' || principalTable === 'sprays' || principalTable === 'titles') {
             principalTable = principalTable.slice(0, -1);
@@ -30,13 +35,22 @@ export class ReportsController {
         let primaryTableData: object[];
 
         if (principalTable === 'chroma' || principalTable === 'level' || principalTable === 'weaponsinfo') {
-            let orderby = '';
+            let orderby = 'ORDER BY ';
+            let i = 0;
 
             for (const key in principalOrder) {
                 orderby += key + ' ' + principalOrder[key] + ',';
+                i++;
             }
 
-            primaryTableData = await prisma.$queryRawUnsafe(`SELECT * FROM ${principalTable} ORDER BY ${orderby.slice(0, -1)}`);
+            orderby = orderby.slice(0, -1);
+
+            if (i === 0) {
+                orderby = '';
+            }
+            
+            const query = `SELECT * FROM ${principalTable} ${orderby.slice(0, -1)}`;
+            primaryTableData = await prisma.$queryRawUnsafe(query);
         } else {
             primaryTableData = await prisma[principalTable].findMany({
                 select: principalFields,
@@ -67,16 +81,23 @@ export class ReportsController {
 
             for (const primaryTableItem of primaryTableData) {
                 if (primaryTableItem[connections[principalTable][complementTable][0]] !== null) {
-                    console.log(complementTable)
-                    const secondaryTableData = await prisma[complementTable].findMany({
-                        where: {
-                            [connections[principalTable][complementTable][1]]: primaryTableItem[connections[principalTable][complementTable][0]],
-                        },
-                        select: secondaryFields,
-                        orderBy: secondaryOrder,
-                    });
+                    let secondaryTableData = {};
+
+                    if (complementTable === 'chroma' || complementTable === 'level' || complementTable === 'weaponsinfo') {
+                        const query = `SELECT * FROM ${complementTable} WHERE ${connections[principalTable][complementTable][1]} = ${ "'" + primaryTableItem[connections[principalTable][complementTable][0]] + "'"}`;
+                        secondaryTableData = await prisma.$queryRawUnsafe(query);
+                    } else {
+                        secondaryTableData = await prisma[complementTable].findMany({
+                            where: {
+                                [connections[principalTable][complementTable][1]]: primaryTableItem[connections[principalTable][complementTable][0]],
+                            },
+                            select: secondaryFields,
+                            orderBy: secondaryOrder,
+                        });
+                    }
 
                     primaryTableItem['complement'] = {
+                        ...primaryTableItem['complement'],
                         [complementTable]: secondaryTableData,
                     }
                 }
